@@ -1,5 +1,7 @@
-#!/usr/bin/env python
-#    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
+#!/usr/bin/python3
+# -*- encoding: utf-8 -*-
+#    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>,
+#                   Srdjan Grubor <sgnn7@sgnn7.org>
 #
 #    This file is part of GNOME Keysign.
 #
@@ -16,35 +18,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = '0.1'
+from os import path
+from glob import glob
 
+VERSION = 0.1
 
-def main():
-    # These imports were moved here because the keysign module
-    # can be imported without wanting to run it, e.g. setup.py
-    # imports the __version__
-    import logging, sys, signal
-    
-    from gi.repository import GLib, Gtk
-    
-    from .MainWindow import MainWindow
+modules = list()
+for filename in glob(path.join(path.dirname(__file__), '*.py')):
+    if path.isfile(filename) and not path.basename(filename).startswith('_'):
+        modules.append(path.basename(filename)[:-3])
 
-    app = MainWindow()
+# print('Using modules: %s' % modules)
 
-    try:
-        GLib.unix_signal_add_full(GLib.PRIORITY_HIGH, signal.SIGINT, lambda *args : app.quit(), None)
-    except AttributeError:
-        pass
-
-    exit_status = app.run(None)
-
-    return exit_status
-
-
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr,
-        level=logging.DEBUG,
-        format='%(name)s (%(levelname)s): %(message)s')
-    sys.exit(main())
+__all__ = modules
 

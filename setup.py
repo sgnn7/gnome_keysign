@@ -6,7 +6,7 @@ import sys
 from setuptools import setup
 from setuptools.command.install import install
 
-from keysign import __version__ as version
+from keysign import VERSION as version
 
 setup(
     name = 'gnome-keysign',

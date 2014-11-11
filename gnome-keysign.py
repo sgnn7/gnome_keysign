@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import signal
+import keysign
 import logging
 
 from sys import exit, stderr
+from signal import SIGINT
 from gi.repository import GLib
 
 from keysign.MainWindow import MainWindow
@@ -19,7 +20,7 @@ class GnomeKeysign(object):
         application = MainWindow()
 
         try:
-            GLib.unix_signal_add_full(GLib.PRIORITY_HIGH, signal.SIGINT, lambda *args : application.quit(), None)
+            GLib.unix_signal_add_full(GLib.PRIORITY_HIGH, SIGINT, lambda *args : application.quit(), None)
         except AttributeError:
             pass
 
