@@ -20,10 +20,10 @@
 import BaseHTTPServer
 import logging
 import socket
-from SocketServer import ThreadingMixIn
+from .socket_server import ThreadingMixIn
 from threading import Thread
 
-from network.AvahiPublisher import AvahiPublisher
+from network.avahi_publisher import AvahiPublisher
 
 log = logging.getLogger()
 

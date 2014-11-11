@@ -29,7 +29,7 @@ from threading import Thread
 from gi.repository import GLib
 from gi.repository import Gtk
 
-import Keyserver
+import .keyserver
 
 log = logging.getLogger()
 

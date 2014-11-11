@@ -27,16 +27,16 @@ class QRImage(Gtk.DrawingArea):
     """An Image encoding data as a QR Code.
     The image tries to scale as big as possible.
     """
-    
+
     def __init__(self, data='Default String', handle_events=True,
                        *args, **kwargs):
         """The QRImage widget inherits from Gtk.Image,
         but it probably cannot be used as one, as there
         is an event handler for resizing events which will
         overwrite to currently loaded image.
-        
+
         You made set data now, or later simply via the property.
-        
+
         handle_events can be set to False if the fullscreen
         window should not be created on click.
         """
@@ -113,7 +113,7 @@ class QRImage(Gtk.DrawingArea):
 
 class FullscreenQRImageWindow(Gtk.Window):
     '''Displays a QRImage in a fullscreen window
-    
+
     The window is supposed to close itself when a button is
     clicked.'''
 
@@ -126,10 +126,10 @@ class FullscreenQRImageWindow(Gtk.Window):
             Gtk.Window.__init__(*args, **kwargs)
 
         self.fullscreen()
-        
+
         self.qrimage = QRImage(data=data, handle_events=False)
         self.add(self.qrimage)
-        
+
         self.connect('button-release-event', self.on_button_released)
         self.connect('key-release-event', self.on_key_released)
         self.add_events(
@@ -179,7 +179,7 @@ def main(data):
                 w.fullscreen()
             else:
                 w.unfullscreen()
-        
+
     #qr.connect('button-release-event', on_released)
     #qr.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
     w.add(qr)

@@ -21,16 +21,15 @@ import logging
 import signal
 import sys
 
-from network.AvahiBrowser import AvahiBrowser
-from network.AvahiPublisher import AvahiPublisher
+from network.avahi_browser import AvahiBrowser
+from network.avahi_publisher import AvahiPublisher
 
 from gi.repository import Gtk, GLib, Gio
-from Sections import KeySignSection, GetKeySection
+from sections import KeySignSection, GetKeySection
 
-import Keyserver
+import keyserver
 
 class MainWindow(Gtk.Application):
-
     def __init__(self):
         Gtk.Application.__init__(
             self, application_id=None) ### org.gnome.Geysign ###
@@ -40,11 +39,8 @@ class MainWindow(Gtk.Application):
         self.log = logging.getLogger()
         self.log = logging
 
-
-
     def on_quit(self, app, param=None):
         self.quit()
-
 
     def on_startup(self, app):
         self.log.info("Startup")
@@ -89,7 +85,6 @@ class MainWindow(Gtk.Application):
         section.append_item(quit_item)
 
         self.set_app_menu(appmenu)
-
 
     def on_scan_image(self, *args, **kwargs):
         print("scanimage")
@@ -144,8 +139,6 @@ class MainWindow(Gtk.Application):
         self.discovered_services += ((name, address, port), )
 
         return False
-
-
 
 def main():
     app = MainWindow()

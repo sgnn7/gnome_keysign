@@ -34,10 +34,10 @@ from monkeysign.gpg import Keyring, TempKeyring
 from monkeysign.ui import MonkeysignUi
 from monkeysign.gpg import GpgRuntimeError
 
-import Keyserver
-from SignPages import KeysPage, KeyPresentPage, KeyDetailsPage
-from SignPages import ScanFingerprintPage, SignKeyPage, PostSignPage
-import MainWindow
+import .keyserver
+from sign_pages import KeysPage, KeyPresentPage, KeyDetailsPage
+from sign_pages import ScanFingerprintPage, SignKeyPage, PostSignPage
+import main_window
 
 import key
 
@@ -50,7 +50,6 @@ from gi.repository import GstVideo
 import key
 
 Gst.init([])
-
 
 progress_bar_text = ["Step 1: Scan QR Code or type fingerprint and click on 'Download' button",
                      "Step 2: Compare the received fpr with the owner's fpr and click 'Sign'",
@@ -71,9 +70,6 @@ Thanks for letting me sign your key!
 --
 GNOME Keysign
 '''
-
-
-
 
 # FIXME: This probably wants to go somewhere more central.
 # Maybe even into Monkeysign.
@@ -455,8 +451,6 @@ class GetKeySection(Gtk.VBox):
         # keep adding this function to the loop until this func ret False
         return False
 
-
-
     def sign_key_async(self, fingerprint, callback=None, data=None, error_cb=None):
         self.log.debug("I will sign key with fpr {}".format(fingerprint))
 
@@ -490,7 +484,6 @@ class GetKeySection(Gtk.VBox):
             # FIXME: For now, we sign all UIDs. This is bad.
             ret = tmpkeyring.sign_key(uidlist[0].uid, signall=True)
             self.log.info("Result of signing %s on key %s: %s", uidlist[0].uid, fingerprint, ret)
-
 
             for uid in uidlist:
                 uid_str = uid.uid
@@ -548,7 +541,6 @@ class GetKeySection(Gtk.VBox):
 
         return False
 
-
     def send_email(self, fingerprint, *data):
         self.log.exception("Sending email... NOT")
         return False
@@ -577,9 +569,7 @@ class GetKeySection(Gtk.VBox):
         retval = call(cmd)
         return retval
 
-
     def on_button_clicked(self, button, *args, **kwargs):
-
         if button == self.nextButton:
             self.notebook.next_page()
             self.set_progress_bar()
@@ -622,19 +612,14 @@ class GetKeySection(Gtk.VBox):
                 GLib.idle_add(self.sign_key_async, self.last_received_fingerprint,
                     self.send_email, self.received_key_data)
 
-
         elif button == self.backButton:
             self.notebook.prev_page()
             self.set_progress_bar()
-
 
     def recieved_key(self, fingerprint, keydata, *data):
         self.received_key_data = keydata
         openpgpkey = self.tmpkeyring.get_keys(fingerprint).values()[0]
         self.signPage.display_downloaded_key(openpgpkey, fingerprint)
-
-
-
 
 class SignUi(MonkeysignUi):
     """sign a key in a safe fashion.

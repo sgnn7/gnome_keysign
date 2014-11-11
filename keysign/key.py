@@ -34,4 +34,3 @@ class Key:
                            "appear to be valid".format(fingerprint))
 
         self.fingerprint = fingerprint
-

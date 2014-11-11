@@ -7,7 +7,7 @@ from sys import exit, stderr
 from signal import SIGINT
 from gi.repository import GLib
 
-from keysign.MainWindow import MainWindow
+from keysign.main_window import MainWindow
 
 class GnomeKeysign(object):
     LOGGING_FORMAT = '%(name)s (%(levelname)s): %(message)s'

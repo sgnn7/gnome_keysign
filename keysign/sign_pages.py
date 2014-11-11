@@ -28,17 +28,15 @@ from qrencode import encode_scaled
 
 from datetime import datetime
 
-from QRCode import QRImage
+from qr_code import QRImage
 
 from scan_barcode import BarcodeReaderGTK
 
-
 log = logging.getLogger()
-
 
 def parse_sig_list(text):
     '''Parses GnuPG's signature list (i.e. list-sigs)
-    
+
     The format is described in the GnuPG man page'''
     sigslist = []
     for block in text.split("\n"):
@@ -55,10 +53,10 @@ def parse_sig_list(text):
 _keyring = None
 def signatures_for_keyid(keyid, keyring=None):
     '''Returns the list of signatures for a given key id
-    
+
     This will call out to GnuPG list-sigs, using Monkeysign,
     and parse the resulting string into a list of signatures.
-    
+
     A default Keyring will be used unless you pass an instance
     as keyring argument.
     '''
@@ -78,10 +76,8 @@ def signatures_for_keyid(keyid, keyring=None):
 
     return siglist
 
-
 # Pages for 'Keys' Tab
 class KeysPage(Gtk.VBox):
-
     def __init__(self, keySection):
         super(KeysPage, self).__init__()
 
@@ -212,13 +208,10 @@ class KeyPresentPage(Gtk.HBox):
         # draw qr code for this fingerprint
         self.draw_qrcode()
 
-
     def draw_qrcode(self):
         assert self.fpr
         data = 'OPENPGP4FPR:' + self.fpr
         self.qrcode.data = data
-
-
 
 class KeyDetailsPage(Gtk.VBox):
 
@@ -251,9 +244,7 @@ class KeyDetailsPage(Gtk.VBox):
         self.pack_start(signaturesLabel, False, False, 0)
         self.pack_start(self.signaturesBox, True, True, 0)
 
-
     def display_uids_signatures_page(self, openPgpKey):
-
         # destroy previous uids
         for uid in self.uidsBox.get_children():
             self.uidsBox.remove(uid)
@@ -278,8 +269,8 @@ class KeyDetailsPage(Gtk.VBox):
             expiry = "No expiration date"
 
         self.expireLabel.set_markup(expiry)
-        
-        
+
+
         ### Set up signatures
         keyid = str(openPgpKey.keyid())
         sigslist = signatures_for_keyid(keyid)
@@ -297,10 +288,10 @@ class KeyDetailsPage(Gtk.VBox):
                 date = datetime.fromtimestamp(float(timestamp))
                 sigLabel.set_markup(str(keyid) + "\t\t" + date.ctime())
                 sigLabel.set_line_wrap(True)
-    
+
                 self.signaturesBox.pack_start(sigLabel, False, False, 0)
                 sigLabel.show()
-            
+
         sigLabel = Gtk.Label()
         sigLabel.set_markup("%d signatures" % len(sigslist))
         sigLabel.set_line_wrap(True)
@@ -311,7 +302,6 @@ class KeyDetailsPage(Gtk.VBox):
 # Pages for "Get Key" Tab
 
 class ScanFingerprintPage(Gtk.HBox):
-
     def __init__(self):
         super(ScanFingerprintPage, self).__init__()
         self.set_spacing(10)
@@ -357,7 +347,6 @@ class ScanFingerprintPage(Gtk.HBox):
         self.pack_start(leftBox, True, True, 0)
         self.pack_start(rightBox, True, True, 0)
 
-
     def get_text_from_textview(self):
         start_iter = self.textbuffer.get_start_iter()
         end_iter = self.textbuffer.get_end_iter()
@@ -368,13 +357,10 @@ class ScanFingerprintPage(Gtk.HBox):
         # level if the there was a fingerprint entered
         return raw_text
 
-
     def on_loadbutton_clicked(self, *args, **kwargs):
         print("load")
 
-
 class SignKeyPage(Gtk.VBox):
-
     def __init__(self):
         super(SignKeyPage, self).__init__()
         self.set_spacing(5)
@@ -383,7 +369,6 @@ class SignKeyPage(Gtk.VBox):
         self.mainLabel.set_line_wrap(True)
 
         self.pack_start(self.mainLabel, False, False, 0)
-
 
     def display_downloaded_key(self, key, scanned_fpr):
 
@@ -404,9 +389,7 @@ and you want to sign all UIDs on this key.""".format(key_text)
         self.mainLabel.set_markup(markup)
         self.mainLabel.show()
 
-
 class PostSignPage(Gtk.VBox):
-
     def __init__(self):
         super(PostSignPage, self).__init__()
         self.set_spacing(10)

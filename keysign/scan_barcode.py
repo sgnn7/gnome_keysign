@@ -32,8 +32,6 @@ from gi.repository import GdkX11, GstVideo
 
 log = logging.getLogger()
 
-
-
 def test():
     print("hello")
     # exist mainloop
@@ -41,10 +39,7 @@ def test():
     # Do not run again.
     return False
 
-
-
 class BarcodeReader(object):
-
     def on_barcode(self, barcode, message):
         '''This is called when a barcode is available
         with barcode being the decoded barcode.
@@ -83,12 +78,10 @@ class BarcodeReader(object):
         pass
 
 class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
-
     __gsignals__ = {
         'barcode': (GObject.SIGNAL_RUN_LAST, None,
                     (str, Gst.Message.__gtype__))
     }
-
 
     def __init__(self, *args, **kwargs):
         super(BarcodeReaderGTK, self).__init__(*args, **kwargs)
@@ -133,7 +126,6 @@ class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
         self.a.set_state(Gst.State.NULL)
         Gtk.DrawingArea.do_unrealize(self)
 
-
     def on_unmap(self, *args, **kwargs):
         '''Hopefully called when this widget is hidden,
         e.g. when the tab of a notebook has changed'''
@@ -141,11 +133,9 @@ class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
         # Actually, we stop the thing for real
         self.a.set_state(Gst.State.NULL)
 
-
     def do_barcode(self, barcode, message):
         "This is called by GObject, I think"
         log.debug("Emitting a barcode signal %s, %s", barcode, message)
-
 
     def on_barcode(self, barcode, message):
         '''You can implement this function to
@@ -193,7 +183,6 @@ class SimpleInterface(BarcodeReader):
         assert da_win
         self.xid = da_win.get_xid()
 
-
     def playToggled(self, w):
         print("Play!")
         self.run()
@@ -220,11 +209,6 @@ class SimpleInterface(BarcodeReader):
         else:
             return super(SimpleInterface, self).on_message(bus, message)
 
-
-
-
-
-
 def main():
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG,
                         format='%(name)s (%(levelname)s): %(message)s')
@@ -242,7 +226,6 @@ def main():
 
     SimpleInterface()
     Gtk.main()
-
 
 if __name__ == '__main__':
     main()
