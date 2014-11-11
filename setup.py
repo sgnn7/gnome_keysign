@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-#
 
-from keysign import __version__ as version
+import sys
+#import py2exe
 
 from setuptools import setup
 from setuptools.command.install import install
-#import py2exe
-import sys
 
+from keysign import __version__ as version
 
 setup(
     name = 'gnome-keysign',
@@ -42,7 +41,7 @@ setup(
         ],
     license='GPLv3+',
     long_description=open('README.rst').read(),
-    
+
     entry_points = {
         #'console_scripts': [
         #    'keysign = keysign.main'
@@ -52,18 +51,18 @@ setup(
             'gks-qrcode = keysign.GPGQRCode:main',
         ],
     },
-    
+
     classifiers = [
         # Maybe not yet...
         #'Development Status :: 4 - Beta',
-        
+
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Information Technology',
         'Intended Audience :: Legal Industry',
-        'Intended Audience :: Telecommunications Industry',    
-    
+        'Intended Audience :: Telecommunications Industry',
+
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         # I think we are only 2.7 compatible
