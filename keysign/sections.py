@@ -17,29 +17,22 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+import shutil
+import re
 import logging
+import requests
+
 from urlparse import ParseResult
 from string import Template
-import shutil
 from subprocess import call
 from tempfile import NamedTemporaryFile
 
-import requests
 from requests.exceptions import ConnectionError
-
-import sys
-import re
 
 from monkeysign.gpg import Keyring, TempKeyring
 from monkeysign.ui import MonkeysignUi
 from monkeysign.gpg import GpgRuntimeError
-
-import .keyserver
-from sign_pages import KeysPage, KeyPresentPage, KeyDetailsPage
-from sign_pages import ScanFingerprintPage, SignKeyPage, PostSignPage
-import main_window
-
-import key
 
 from gi.repository import Gst, Gtk, GLib
 # Because of https://bugzilla.gnome.org/show_bug.cgi?id=698005
@@ -47,7 +40,14 @@ from gi.repository import GdkX11
 # Needed for window.get_xid(), xvimagesink.set_window_handle(), respectively:
 from gi.repository import GstVideo
 
-import key
+# Import sister modules
+import .key
+import .keyserver
+import .main_window
+
+from .sign_pages import KeysPage, KeyPresentPage, KeyDetailsPage
+from .sign_pages import ScanFingerprintPage, SignKeyPage, PostSignPage
+
 
 Gst.init([])
 
@@ -632,9 +632,7 @@ passwords."""
 
         self.app = app
 
-
     def main(self):
-
         MonkeysignUi.main(self)
 
     def yes_no(self, prompt, default = None):

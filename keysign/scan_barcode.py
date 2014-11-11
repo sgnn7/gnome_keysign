@@ -17,10 +17,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import argparse
 import logging
 import signal
-import sys
 
 from gi.repository import GObject
 from gi.repository import Gst
@@ -115,7 +115,6 @@ class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
         self.connect('unmap', self.on_unmap)
         self.connect('map', self.on_map)
 
-
     def on_map(self, *args, **kwargs):
         '''It seems this is called when the widget is becoming visible'''
         self.run()
@@ -168,7 +167,6 @@ class SimpleInterface(BarcodeReader):
         #vbox.add(self.da)
         vbox.pack_start(self.da, False, False, 0)
 
-
         self.playButtonImage = Gtk.Image()
         self.playButtonImage.set_from_stock("gtk-media-play", Gtk.IconSize.BUTTON)
         self.playButton = Gtk.Button.new()
@@ -177,7 +175,6 @@ class SimpleInterface(BarcodeReader):
         vbox.pack_start(self.playButton, False, False, 1)
 
         self.window.show_all()
-
 
         da_win = self.da.get_property('window')
         assert da_win
@@ -194,7 +191,6 @@ class SimpleInterface(BarcodeReader):
         if message.structure.get_name() == 'prepare-window-handle':
             #self.videoslot.set_sink(message.src)
             message.src.set_window_handle(self.xid)
-
 
     def on_message(self, bus, message):
         log.debug("Message: %s", message)
@@ -225,6 +221,7 @@ def main():
     #GLib.idle_add(br.run)
 
     SimpleInterface()
+
     Gtk.main()
 
 if __name__ == '__main__':

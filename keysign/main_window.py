@@ -120,7 +120,6 @@ class MainWindow(Gtk.Application):
     def stop_server(self):
         self.keyserver.shutdown()
 
-
     def on_new_service(self, browser, name, address, port):
         self.log.info("Probably discovered something, let me check; %s %s:%i",
             name, address, port)

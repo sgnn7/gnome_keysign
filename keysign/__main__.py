@@ -18,6 +18,7 @@
 
 import logging, sys
 
+# XXX This should not be done like this. Ever.
 from .__init__ import main
 
 if __name__ == '__main__':

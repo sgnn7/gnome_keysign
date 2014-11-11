@@ -15,13 +15,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
+import sys
 import logging
 import StringIO
 
 from gi.repository import Gdk, Gtk, GdkPixbuf
 from qrencode import encode_scaled
-
-log = logging.getLogger()
 
 class QRImage(Gtk.DrawingArea):
     """An Image encoding data as a QR Code.
@@ -53,12 +52,10 @@ class QRImage(Gtk.DrawingArea):
             self.add_events(
                 Gdk.EventMask.BUTTON_RELEASE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
 
-
     def on_button_released(self, widget, event):
         self.log.info('Event %s', dir(event))
         if event.button == 1:
             w = FullscreenQRImageWindow(data=self.data)
-
 
     def do_size_allocate(self, event):
         """This is the event handler for the resizing event, i.e.
@@ -69,7 +66,6 @@ class QRImage(Gtk.DrawingArea):
             self.last_allocation = allocation
             self.queue_draw()
         Gtk.DrawingArea.do_size_allocate(self, event)
-
 
     def do_draw(self, cr):
         """This scales the QR Code up to the widget's
@@ -87,14 +83,12 @@ class QRImage(Gtk.DrawingArea):
             Gdk.cairo_set_source_pixbuf(cr, pixbuf, width//2 - size//2, height//2 - size//2)
             cr.paint()
 
-
     @staticmethod
     def create_qrcode(data, size):
         '''Creates a PIL image for the data given'''
         log.debug('Encoding %s', data)
         version, width, image = encode_scaled(data,size,0,1,2,True)
         return image
-
 
     @staticmethod
     def image_to_pixbuf(image):
@@ -108,8 +102,6 @@ class QRImage(Gtk.DrawingArea):
         pixbuf = loader.get_pixbuf()
         loader.close()
         return pixbuf
-
-
 
 class FullscreenQRImageWindow(Gtk.Window):
     '''Displays a QRImage in a fullscreen window
@@ -139,7 +131,6 @@ class FullscreenQRImageWindow(Gtk.Window):
 
         self.show_all()
 
-
     def on_button_released(self, widget, event):
         '''Connected to the button-release-event and closes this
         window''' # It's unclear whether all resources are free()d
@@ -160,34 +151,33 @@ class FullscreenQRImageWindow(Gtk.Window):
             self.hide()
             self.close()
 
-
 def main(data):
-    w = Gtk.Window()
-    w.connect("delete-event", Gtk.main_quit)
-    w.set_default_size(100,100)
-    qr = QRImage(data)
+    window = Gtk.Window()
+    window.connect("delete-event", Gtk.main_quit)
+    window.set_default_size(100,100)
+    qr_image = QRImage(data)
 
+    # XXX Really bad stuff here
     global fullscreen
     fullscreen = False
 
     def on_released(widget, event):
         global fullscreen
- 
+
         if event.button == 1:
             fullscreen = not fullscreen
             if fullscreen:
-                w.fullscreen()
+                window.fullscreen()
             else:
-                w.unfullscreen()
+                window.unfullscreen()
 
     #qr.connect('button-release-event', on_released)
     #qr.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
-    w.add(qr)
-    w.show_all()
+    window.add(qr_image)
+    window.show_all()
+
     Gtk.main()
 
 if __name__ == '__main__':
-    import sys
     logging.basicConfig(level=logging.DEBUG)
-    data = sys.argv[1]
-    main(data)
+    main(sys.argv[1])

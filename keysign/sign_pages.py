@@ -17,20 +17,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import islice
-import logging
 import sys
+import logging
 import StringIO
+
+from itertools import islice
+from datetime import datetime
 
 from gi.repository import Gtk, GLib, GdkPixbuf
 from monkeysign.gpg import Keyring
-from qrencode import encode_scaled
-
-from datetime import datetime
-
-from qr_code import QRImage
-
 from scan_barcode import BarcodeReaderGTK
+from qrencode import encode_scaled
+from qr_code import QRImage
 
 log = logging.getLogger()
 
@@ -50,6 +48,7 @@ def parse_sig_list(text):
 
 # This is a cache for a keyring object, so that we do not need
 # to create a new object every single time we parse signatures
+# XXX Uberbad
 _keyring = None
 def signatures_for_keyid(keyid, keyring=None):
     '''Returns the list of signatures for a given key id
@@ -154,7 +153,6 @@ class KeysPage(Gtk.VBox):
     def on_selection_changed(self, *args):
         self.keySection.nextButton.set_sensitive(True)
 
-
 class KeyPresentPage(Gtk.HBox):
     def __init__(self):
         super(KeyPresentPage, self).__init__()
@@ -214,7 +212,6 @@ class KeyPresentPage(Gtk.HBox):
         self.qrcode.data = data
 
 class KeyDetailsPage(Gtk.VBox):
-
     def __init__(self):
         super(KeyDetailsPage, self).__init__()
         self.set_spacing(10)
@@ -298,9 +295,7 @@ class KeyDetailsPage(Gtk.VBox):
         self.signaturesBox.pack_start(sigLabel, False, False, 0)
         sigLabel.show()
 
-
 # Pages for "Get Key" Tab
-
 class ScanFingerprintPage(Gtk.HBox):
     def __init__(self):
         super(ScanFingerprintPage, self).__init__()
@@ -371,7 +366,6 @@ class SignKeyPage(Gtk.VBox):
         self.pack_start(self.mainLabel, False, False, 0)
 
     def display_downloaded_key(self, key, scanned_fpr):
-
         # FIXME: If the two fingerprints don't match, the button
         # should be disabled
         key_text = GLib.markup_escape_text(str(key))

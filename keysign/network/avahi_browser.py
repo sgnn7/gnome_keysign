@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#
 #    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
 #    Copyright 2014 Andrei Macavei <andrei.macavei89@gmail.com>
 #
@@ -16,7 +17,10 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
-import avahi, dbus
+
+import avahi
+import dbus
+
 from dbus import DBusException
 from dbus.mainloop.glib import DBusGMainLoop
 
@@ -43,8 +47,8 @@ class AvahiBrowser(GObject.GObject):
         self.loop = loop or DBusGMainLoop()
         self.bus = dbus.SystemBus(mainloop=self.loop)
 
-        self.server = dbus.Interface( self.bus.get_object(avahi.DBUS_NAME, '/'),
-                'org.freedesktop.Avahi.Server')
+        self.server = dbus.Interface(self.bus.get_object(avahi.DBUS_NAME, '/'),
+                                     'org.freedesktop.Avahi.Server')
 
         self.sbrowser = dbus.Interface(self.bus.get_object(avahi.DBUS_NAME,
             self.server.ServiceBrowserNew(avahi.IF_UNSPEC,
@@ -86,14 +90,14 @@ def main():
     # We're not passing the loop to DBus, because... well, it
     # does't work... It seems to expect a DBusMainLoop, not
     # an ordinary main loop...
-    ab = AvahiBrowser()
+    browser = AvahiBrowser()
 
     def print_signal(*args):
         print "Signal ahoi", args
 
-    ab.connect('new_service', print_signal)
-    loop.run()
+    browser.connect('new_service', print_signal)
 
+    loop.run()
 
 if __name__ == "__main__":
     main()

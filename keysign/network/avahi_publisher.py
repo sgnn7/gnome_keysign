@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#
 #    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
 #    Copyright 2014 Andrei Macavei <andrei.macavei89@gmail.com>
 #
@@ -16,23 +17,25 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
-import logging
 
 import avahi
 import dbus
+import logging
+
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GObject
 
 class AvahiPublisher:
-
     def __init__(self,
-            service_name='Demo Service',
-            service_type='_demo._tcp',
-            service_port=8899,
-            service_txt='',
-            domain='',
-            host=''):
+                 service_name='Demo Service',
+                 service_type='_demo._tcp',
+                 service_port=8899,
+                 service_txt='',
+                 domain='',
+                 host=''):
+
         self.log = logging.getLogger()
+
         #self.loop = loop or DBusGMainLoop()
         self.bus = dbus.SystemBus()
         self.server = dbus.Interface(
@@ -51,8 +54,6 @@ class AvahiPublisher:
         # Counter so we only rename after collisions a sensible number of times
         self.rename_count = 12
 
-
-
     def add_service(self):
         if self.group is None:
             group = dbus.Interface(
@@ -66,7 +67,6 @@ class AvahiPublisher:
 
         self.log.info("Adding service '%s' of type '%s'",
             self.service_name, self.service_type)
-
 
         group = self.group
         group.AddService(
@@ -82,7 +82,6 @@ class AvahiPublisher:
     def remove_service(self):
         if not self.group is None:
             self.group.Reset()
-
 
     def server_state_changed(self, state):
         if state == avahi.SERVER_COLLISION:
@@ -119,29 +118,25 @@ class AvahiPublisher:
             self.log.error(m, error)
             raise RuntimeError(m % error)
 
-
 if __name__ == '__main__':
-    DBusGMainLoop( set_as_default=True )
+    DBusGMainLoop(set_as_default = True)
 
-    ap = AvahiPublisher()
-    ap.add_service()
+    publisher = AvahiPublisher()
+    publisher.add_service()
 
     main_loop = GObject.MainLoop()
     bus = dbus.SystemBus()
 
-    server = dbus.Interface(
-            bus.get_object( avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER ),
-            avahi.DBUS_INTERFACE_SERVER )
+    server = dbus.Interface(bus.get_object(avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER),
+                            avahi.DBUS_INTERFACE_SERVER)
 
-    server.connect_to_signal( "StateChanged", ap.server_state_changed )
-    ap.server_state_changed( server.GetState() )
-
+    server.connect_to_signal("StateChanged", publisher.server_state_changed)
+    publisher.server_state_changed(server.GetState())
 
     try:
         main_loop.run()
     except KeyboardInterrupt:
         pass
 
-    if not ap.group is None:
-        ap.group.Free()
-
+    if not publisher.group is None:
+        publisher.group.Free()
