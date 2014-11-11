@@ -30,7 +30,7 @@ from gi.repository import GLib
 from gi.repository import Gtk
 from dbus.mainloop.glib import DBusGMainLoop
 
-import .keyserver
+import .key_server
 
 class ServerWindow(Gtk.Window):
     def __init__(self):

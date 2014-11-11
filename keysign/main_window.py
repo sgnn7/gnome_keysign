@@ -27,7 +27,7 @@ from network.avahi_publisher import AvahiPublisher
 from gi.repository import Gtk, GLib, Gio
 from sections import KeySignSection, GetKeySection
 
-import keyserver
+import key_server
 
 class MainWindow(Gtk.Application):
     def __init__(self):

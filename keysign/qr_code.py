@@ -83,10 +83,9 @@ class QRImage(Gtk.DrawingArea):
             Gdk.cairo_set_source_pixbuf(cr, pixbuf, width//2 - size//2, height//2 - size//2)
             cr.paint()
 
-    @staticmethod
-    def create_qrcode(data, size):
+    def create_qrcode(self, data, size):
         '''Creates a PIL image for the data given'''
-        log.debug('Encoding %s', data)
+        self.log.debug('Encoding %s', data)
         version, width, image = encode_scaled(data,size,0,1,2,True)
         return image
 

@@ -41,9 +41,9 @@ from gi.repository import GdkX11
 from gi.repository import GstVideo
 
 # Import sister modules
-import .key
-import .keyserver
-import .main_window
+import key
+import key_server
+import main_window
 
 from .sign_pages import KeysPage, KeyPresentPage, KeyDetailsPage
 from .sign_pages import ScanFingerprintPage, SignKeyPage, PostSignPage
