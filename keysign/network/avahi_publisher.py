@@ -25,7 +25,7 @@ import logging
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GObject
 
-class AvahiPublisher:
+class AvahiPublisher(object):
     def __init__(self,
                  service_name='Demo Service',
                  service_type='_demo._tcp',
@@ -51,6 +51,7 @@ class AvahiPublisher:
         self.host = host # Host to publish records for, default to localhost
 
         self.group = None
+
         # Counter so we only rename after collisions a sensible number of times
         self.rename_count = 12
 
@@ -66,7 +67,8 @@ class AvahiPublisher:
             self.group = group
 
         self.log.info("Adding service '%s' of type '%s'",
-            self.service_name, self.service_type)
+                      self.service_name,
+                      self.service_type)
 
         group = self.group
         group.AddService(
@@ -77,10 +79,11 @@ class AvahiPublisher:
                 self.domain, self.host,
                 dbus.UInt16 (self.service_port),
                 avahi.string_array_to_txt_array (self.service_txt))
+
         group.Commit()
 
     def remove_service(self):
-        if not self.group is None:
+        if self.group:
             self.group.Reset()
 
     def server_state_changed(self, state):
@@ -99,24 +102,27 @@ class AvahiPublisher:
         elif state == avahi.ENTRY_GROUP_COLLISION:
             self.rename_count -= 1
             if self.rename_count > 0:
-                name = self.server.GetAlternativeServiceName(self.service_name)
                 self.log.warn("Service name collision, changing name to '%s'",
-                    name)
+                              name)
+
+                name = self.server.GetAlternativeServiceName(self.service_name)
+
                 self.remove_service()
                 self.add_service()
-
             else:
                 # FIXME: max_renames is not defined. We probably want to restructure
                 # this a little bit, anyway. i.e. have a self.max_renames
                 # and a self.rename_count or so
-                m = "No suitable service name found after %i retries, exiting."
-                self.log.error(m, self.max_renames)
-                raise RuntimeError(m % self.max_renames)
+                message = "No suitable service name found after %i retries, exiting."
+                self.log.error(message, self.max_renames)
+
+                raise RuntimeError(message % self.max_renames)
 
         elif state == avahi.ENTRY_GROUP_FAILURE:
-            m = "Error in group state changed %s"
-            self.log.error(m, error)
-            raise RuntimeError(m % error)
+            message = "Error in group state changed %s"
+            self.log.error(message, error)
+
+            raise RuntimeError(message % error)
 
 if __name__ == '__main__':
     DBusGMainLoop(set_as_default = True)
@@ -131,6 +137,7 @@ if __name__ == '__main__':
                             avahi.DBUS_INTERFACE_SERVER)
 
     server.connect_to_signal("StateChanged", publisher.server_state_changed)
+
     publisher.server_state_changed(server.GetState())
 
     try:

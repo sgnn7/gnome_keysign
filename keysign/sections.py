@@ -20,7 +20,6 @@
 import sys
 import shutil
 import re
-import logging
 import requests
 
 from urlparse import ParseResult
@@ -44,6 +43,7 @@ from gi.repository import GstVideo
 import key
 import key_server
 import main_window
+import logger
 
 from .sign_pages import KeysPage, KeyPresentPage, KeyDetailsPage
 from .sign_pages import ScanFingerprintPage, SignKeyPage, PostSignPage
@@ -51,9 +51,9 @@ from .sign_pages import ScanFingerprintPage, SignKeyPage, PostSignPage
 
 Gst.init([])
 
-progress_bar_text = ["Step 1: Scan QR Code or type fingerprint and click on 'Download' button",
-                     "Step 2: Compare the received fpr with the owner's fpr and click 'Sign'",
-                     "Step 3: Key was succesfully signed and an email was send to owner."]
+progress_bar_text = [ "Step 1: Scan QR Code or type fingerprint and click on 'Download' button",
+                      "Step 2: Compare the received fpr with the owner's fpr and click 'Sign'",
+                      "Step 3: Key was succesfully signed and an email was send to owner." ]
 
 
 SUBJECT = 'Your signed key $fingerprint'
@@ -71,9 +71,6 @@ Thanks for letting me sign your key!
 GNOME Keysign
 '''
 
-# FIXME: This probably wants to go somewhere more central.
-# Maybe even into Monkeysign.
-log = logging.getLogger()
 def UIDExport(uid, keydata):
     """Export only the UID of a key.
     Unfortunately, GnuPG does not provide smth like
@@ -94,7 +91,6 @@ def UIDExport(uid, keydata):
 
     return only_uid
 
-
 def MinimalExport(keydata):
     '''Returns the minimised version of a key
 
@@ -111,8 +107,6 @@ def MinimalExport(keydata):
     stripped_key = tmpkeyring.export_data(fingerprint)
     return stripped_key
 
-
-
 class TempKeyringCopy(TempKeyring):
     """A temporary keyring which uses the secret keys of a parent keyring
 
@@ -128,7 +122,7 @@ class TempKeyringCopy(TempKeyring):
         else:
             TempKeyring.__init__(self, *args, **kwargs)
 
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
 
         tmpkeyring = self
         # Copy and paste job from monkeysign.ui.prepare
@@ -155,23 +149,7 @@ class TempKeyringCopy(TempKeyring):
                 signing_keys.append(key)
                 tmpkeyring.import_data (keyring.export_data (fpr))
 
-
-
-## Monkeypatching to get more debug output
-import monkeysign.gpg
-bc = monkeysign.gpg.Context.build_command
-def build_command(*args, **kwargs):
-    ret = bc(*args, **kwargs)
-    #log.info("Building command %s", ret)
-    log.debug("Building cmd: %s", ' '.join(["'%s'" % c for c in ret]))
-    return ret
-monkeysign.gpg.Context.build_command = build_command
-
-
-
-
 class KeySignSection(Gtk.VBox):
-
     def __init__(self, app):
         '''Initialises the section which lets the user
         choose a key to be signed by other person.
@@ -183,19 +161,19 @@ class KeySignSection(Gtk.VBox):
         super(KeySignSection, self).__init__()
 
         self.app = app
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
         self.keyring = Keyring()
 
         # these are needed later when we need to get details about
         # a selected key
-        self.keysPage = KeysPage(self)
-        self.keyDetailsPage = KeyDetailsPage()
+        self.keys_page = KeysPage(self)
+        self.key_details_page = KeyDetailsPage()
         self.keyPresentPage = KeyPresentPage()
 
         # set up notebook container
         self.notebook = Gtk.Notebook()
-        self.notebook.append_page(self.keysPage, None)
-        self.notebook.append_page(self.keyDetailsPage, None)
+        self.notebook.append_page(self.keys_page, None)
+        self.notebook.append_page(self.key_details_page, None)
         self.notebook.append_page(self.keyPresentPage, None)
         self.notebook.set_show_tabs(False)
 
@@ -226,16 +204,14 @@ class KeySignSection(Gtk.VBox):
         # it will save the key data in this field
         self.received_key_data = None
 
-
     def on_button_clicked(self, button):
-
         page_index = self.notebook.get_current_page()
 
         if button == self.nextButton:
             # switch to the next page in the notebook
             self.notebook.next_page()
 
-            selection = self.keysPage.treeView.get_selection()
+            selection = self.keys_page.tree_view.get_selection()
             model, paths = selection.get_selected_rows()
 
             if page_index+1 == 1:
@@ -243,14 +219,14 @@ class KeySignSection(Gtk.VBox):
                     iterator = model.get_iter(path)
                     (name, email, keyid) = model.get(iterator, 0, 1, 2)
                     try:
-                        openPgpKey = self.keysPage.keysDict[keyid]
+                        openPgpKey = self.keys_page.keys_dict[keyid]
                     except KeyError:
                         m = "No key details can be shown for id {}".format(keyid)
                         self.log.exception(m)
                         raise
 
                 # display uids, exp date and signatures
-                self.keyDetailsPage.display_uids_signatures_page(openPgpKey)
+                self.key_details_page.display_uids_signatures_page(openPgpKey)
                 # save a reference for later use
                 self.last_selected_key = openPgpKey
 
@@ -276,9 +252,7 @@ class KeySignSection(Gtk.VBox):
 
             self.notebook.prev_page()
 
-
 class GetKeySection(Gtk.VBox):
-
     def __init__(self, app):
         '''Initialises the section which lets the user
         start signing a key.
@@ -290,16 +264,16 @@ class GetKeySection(Gtk.VBox):
         super(GetKeySection, self).__init__()
 
         self.app = app
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
 
         # the temporary keyring we operate in
         self.tmpkeyring = None
 
-        self.scanPage = ScanFingerprintPage()
+        self.scan_page = ScanFingerprintPage()
         self.signPage = SignKeyPage()
         # set up notebook container
         self.notebook = Gtk.Notebook()
-        self.notebook.append_page(self.scanPage, None)
+        self.notebook.append_page(self.scan_page, None)
         self.notebook.append_page(self.signPage, None)
         self.notebook.append_page(PostSignPage(), None)
         self.notebook.set_show_tabs(False)
@@ -330,9 +304,9 @@ class GetKeySection(Gtk.VBox):
 
         # We *could* overwrite the on_barcode function, but
         # let's rather go with a GObject signal
-        #self.scanFrame.on_barcode = self.on_barcode
-        self.scanPage.scanFrame.connect('barcode', self.on_barcode)
-        #GLib.idle_add(        self.scanFrame.run)
+        #self.scan_frame.on_barcode = self.on_barcode
+        self.scan_page.scan_frame.connect('barcode', self.on_barcode)
+        #GLib.idle_add(        self.scan_frame.run)
 
         # A list holding references to temporary files which should probably
         # be cleaned up on exit...
@@ -342,7 +316,6 @@ class GetKeySection(Gtk.VBox):
         page_index = self.notebook.get_current_page()
         self.progressBar.set_text(progress_bar_text[page_index])
         self.progressBar.set_fraction((page_index+1)/3.0)
-
 
     def verify_fingerprint(self, input_string):
         # Check for a fingerprint in the given string. It can be provided
@@ -372,7 +345,6 @@ class GetKeySection(Gtk.VBox):
                 self.on_button_clicked(self.nextButton, pgpkey, message)
         else:
             self.log.error("data found in barcode does not match a OpenPGP fingerprint pattern: %s", barcode)
-
 
     def download_key_http(self, address, port):
         url = ParseResult(
@@ -412,7 +384,6 @@ class GetKeySection(Gtk.VBox):
 
         self.log.debug("Trying to validate %s against %s: %s", downloaded_data, fingerprint, result)
         return result
-
 
     def obtain_key_async(self, fingerprint, callback=None, data=None, error_cb=None):
         other_clients = self.app.discovered_services
@@ -525,14 +496,11 @@ class GetKeySection(Gtk.VBox):
                 self.email_file (to=uid_str, subject=subject,
                                  body=body, files=[filename])
 
-
             # FIXME: Can we get rid of self.tmpfiles here already? Even if the MUA is still running?
-
 
             # 3.4. optionnally (-l), create a local signature and import in
             # local keyring
             # 4. trash the temporary keyring
-
 
         else:
             self.log.error('data found in barcode does not match a OpenPGP fingerprint pattern: %s', fingerprint)
@@ -583,7 +551,7 @@ class GetKeySection(Gtk.VBox):
                     message = args[1]
                     fingerprint = pgpkey.fingerprint
                 else:
-                    raw_text = self.scanPage.get_text_from_textview()
+                    raw_text = self.scan_page.get_text_from_textview()
                     fingerprint = self.verify_fingerprint(raw_text)
 
                     if fingerprint == None:

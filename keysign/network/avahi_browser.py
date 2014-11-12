@@ -27,9 +27,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gio
 from gi.repository import GObject
 
-
 __all__ = ["AvahiBrowser"]
-
 
 class AvahiBrowser(GObject.GObject):
     __gsignals__ = {
@@ -38,13 +36,14 @@ class AvahiBrowser(GObject.GObject):
             (str, str, int))
     }
 
-
-    def __init__(self, loop=None, service='_geysign._tcp'):
+    def __init__(self, loop = None, service = '_geysign._tcp'):
         GObject.GObject.__init__(self)
 
         self.service = service
+
         # It seems that these are different loops..?!
         self.loop = loop or DBusGMainLoop()
+
         self.bus = dbus.SystemBus(mainloop=self.loop)
 
         self.server = dbus.Interface(self.bus.get_object(avahi.DBUS_NAME, '/'),
@@ -74,30 +73,30 @@ class AvahiBrowser(GObject.GObject):
         name = args[2]
         address = args[7]
         port = args[8]
+
         print 'service resolved'
         print 'name:', name
         print 'address:', address
         print 'port:', port
-        retval = self.emit('new_service', name, address, port)
-        print "emitted", retval
+
+        return_value = self.emit('new_service', name, address, port)
+        print "emitted", return_value
 
     def on_error(self, *args):
         print 'error_handler'
         print args[0]
 
-def main():
+if __name__ == "__main__":
     loop = GObject.MainLoop()
+
     # We're not passing the loop to DBus, because... well, it
     # does't work... It seems to expect a DBusMainLoop, not
     # an ordinary main loop...
     browser = AvahiBrowser()
 
     def print_signal(*args):
-        print "Signal ahoi", args
+        print "Signal received", args
 
     browser.connect('new_service', print_signal)
 
     loop.run()
-
-if __name__ == "__main__":
-    main()
