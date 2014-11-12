@@ -19,7 +19,7 @@
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import logging
+import logger
 import StringIO
 
 from itertools import islice
@@ -32,8 +32,6 @@ from qrencode import encode_scaled
 from qr_code import QRImage
 
 from utils import parse_sig_list, signatures_for_keyid
-
-log = logging.getLogger()
 
 # Pages for 'Keys' Tab
 class KeysPage(Gtk.VBox):
@@ -175,7 +173,7 @@ class KeyDetailsPage(Gtk.VBox):
     def __init__(self):
         super(KeyDetailsPage, self).__init__()
         self.set_spacing(10)
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
 
         # FIXME: this should be moved to KeySignSection
         self.keyring = Keyring()

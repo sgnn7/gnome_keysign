@@ -20,7 +20,8 @@
 
 import avahi
 import dbus
-import logging
+
+from .. import logger
 
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GObject
@@ -34,7 +35,7 @@ class AvahiPublisher(object):
                  domain='',
                  host=''):
 
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
 
         #self.loop = loop or DBusGMainLoop()
         self.bus = dbus.SystemBus()

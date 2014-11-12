@@ -17,16 +17,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
-import BaseHTTPServer
-import logging
 import socket
+import dbus
+import time
+
+import BaseHTTPServer
 
 from threading import Thread
 from network.avahi_publisher import AvahiPublisher
-
 from SocketServer import ThreadingMixIn
 
-log = logging.getLogger()
+import logger
 
 class KeyRequestHandlerBase(BaseHTTPServer.BaseHTTPRequestHandler):
     '''This is the "base class" which needs to be given access
@@ -80,7 +81,10 @@ class ServeKeyThread(Thread):
         '''Initializes the server to serve the data'''
         self.keydata = data
         self.port = port
+
         super(ServeKeyThread, self).__init__(*args, **kwargs)
+
+        self.log = logger.get_instance()
         self.daemon = True
         self.httpd = None
 
@@ -172,9 +176,10 @@ class ServeKeyThread(Thread):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    import dbus, time
+    log = logger.get_instance()
+
     dbus.mainloop.glib.DBusGMainLoop (set_as_default=True)
+
     def stop_thread(t, seconds=5):
         log.info('Sleeping %d seconds, then stopping', seconds)
         time.sleep(seconds)

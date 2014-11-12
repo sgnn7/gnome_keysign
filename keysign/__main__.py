@@ -16,13 +16,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging, sys
+import sys
 
 # XXX This should not be done like this. Ever.
 from .__init__ import main
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr,
-        level=logging.DEBUG,
-        format='%(name)s (%(levelname)s): %(message)s')
     sys.exit(main())

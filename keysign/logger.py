@@ -20,6 +20,9 @@ class Logger(object):
     def debug(self, *args):
         self.logger.debug(args)
 
+    def info(self, *args):
+        self.logger.info(args)
+
 # Singleton logger instance
 def get_instance():
     if '__logger' not in vars():

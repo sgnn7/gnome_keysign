@@ -22,7 +22,7 @@
 with the Gtk mainloop
 '''
 
-import logging
+
 import sys
 
 from threading import Thread
@@ -31,10 +31,11 @@ from gi.repository import Gtk
 from dbus.mainloop.glib import DBusGMainLoop
 
 import .key_server
+import .logger
 
 class ServerWindow(Gtk.Window):
     def __init__(self):
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
 
         Gtk.Window.__init__(self, title="Gtk and Python threads")
         self.set_border_width(10)
@@ -82,6 +83,4 @@ def main(args):
     Gtk.main()
 
 if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG,
-            format='%(name)s (%(levelname)s): %(message)s')
     sys.exit(main(sys.argv))

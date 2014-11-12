@@ -17,7 +17,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
+import logger
 import signal
 import sys
 
@@ -36,8 +36,7 @@ class MainWindow(Gtk.Application):
         self.connect("activate", self.on_activate)
         self.connect("startup", self.on_startup)
 
-        self.log = logging.getLogger()
-        self.log = logging
+        self.log = logger.get_instance()
 
     def on_quit(self, app, param=None):
         self.quit()

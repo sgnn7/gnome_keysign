@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 import sys
-import logging
+import logger
 import StringIO
 
 from gi.repository import Gdk, Gtk, GdkPixbuf
@@ -40,7 +40,7 @@ class QRImage(Gtk.DrawingArea):
         window should not be created on click.
         """
         super(QRImage, self).__init__(*args, **kwargs)
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
         # The data to be rendered
         self.data = data
         self.last_allocation = self.get_allocation()
@@ -110,7 +110,7 @@ class FullscreenQRImageWindow(Gtk.Window):
 
     def __init__(self, data, *args, **kwargs):
         '''The data will be passed to the QRImage'''
-        self.log = logging.getLogger()
+        self.log = logger.get_instance()
         if issubclass(self.__class__, object):
             super(FullscreenQRImageWindow, self).__init__(*args, **kwargs)
         else:
@@ -178,5 +178,4 @@ def main(data):
     Gtk.main()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
     main(sys.argv[1])

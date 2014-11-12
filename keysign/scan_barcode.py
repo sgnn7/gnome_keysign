@@ -19,7 +19,7 @@
 
 import sys
 import argparse
-import logging
+import logger
 import signal
 
 from gi.repository import GObject
@@ -30,8 +30,6 @@ from gi.repository import Gtk, GdkX11
 # Needed for window.get_xid(), xvimagesink.set_window_handle(), respectively:
 from gi.repository import GdkX11, GstVideo
 
-log = logging.getLogger()
-
 def test():
     print("hello")
     # exist mainloop
@@ -40,6 +38,9 @@ def test():
     return False
 
 class BarcodeReader(object):
+    def __init__(self):
+        self.log = logger.get_instance()
+
     def on_barcode(self, barcode, message):
         '''This is called when a barcode is available
         with barcode being the decoded barcode.
@@ -48,13 +49,13 @@ class BarcodeReader(object):
         return barcode
 
     def on_message(self, bus, message):
-        log.debug("Message: %s", message)
+        self.log.debug("Message: %s", message)
         if message:
             struct = message.get_structure()
             if struct.get_name() == 'barcode':
                 assert struct.has_field('symbol')
                 barcode = struct.get_string('symbol')
-                log.info("Read Barcode: {}".format(barcode))
+                self.log.info("Read Barcode: {}".format(barcode))
                 self.on_barcode(barcode, message)
 
     def run(self):
@@ -74,7 +75,7 @@ class BarcodeReader(object):
         #a.set_state(Gst.State.NULL)
 
     def on_sync_message(self, bus, message):
-        log.debug("Sync Message!")
+        self.log.debug("Sync Message!")
         pass
 
 class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
@@ -86,6 +87,8 @@ class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
     def __init__(self, *args, **kwargs):
         super(BarcodeReaderGTK, self).__init__(*args, **kwargs)
 
+        self.log = logger.get_instance()
+
     @property
     def x_window_id(self, *args, **kwargs):
         window = self.get_property('window')
@@ -95,13 +98,13 @@ class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
         return xid
 
     def on_message(self, bus, message):
-        log.debug("Message: %s", message)
+        self.log.debug("Message: %s", message)
         struct = message.get_structure()
         assert struct
         name = struct.get_name()
-        log.debug("Name: %s", name)
+        self.log.debug("Name: %s", name)
         if name == "prepare-window-handle":
-            log.debug('XWindow ID')
+            self.log.debug('XWindow ID')
             message.src.set_window_handle(self.x_window_id)
         else:
             return super(BarcodeReaderGTK, self).on_message(bus, message)
@@ -134,19 +137,21 @@ class BarcodeReaderGTK(Gtk.DrawingArea, BarcodeReader):
 
     def do_barcode(self, barcode, message):
         "This is called by GObject, I think"
-        log.debug("Emitting a barcode signal %s, %s", barcode, message)
+        self.log.debug("Emitting a barcode signal %s, %s", barcode, message)
 
     def on_barcode(self, barcode, message):
         '''You can implement this function to
         get notified when a new barcode has been read.
         If you do, you will not get the GObject "barcode" signal
         as it is emitted from here.'''
-        log.debug("About to emit barcode signal: %s", barcode)
+        self.log.debug("About to emit barcode signal: %s", barcode)
         self.emit('barcode', barcode, message)
 
 class SimpleInterface(BarcodeReader):
     def __init__(self, *args, **kwargs):
         super(SimpleInterface, self).__init__(*args, **kwargs)
+
+        self.log = logger.get_instance()
 
         self.playing = False
 
@@ -193,21 +198,19 @@ class SimpleInterface(BarcodeReader):
             message.src.set_window_handle(self.xid)
 
     def on_message(self, bus, message):
-        log.debug("Message: %s", message)
+        self.log.debug("Message: %s", message)
         struct = message.get_structure()
         assert struct
         name = struct.get_name()
-        log.debug("Name: %s", name)
+        self.log.debug("Name: %s", name)
         if name == "prepare-window-handle":
-            log.debug('XWindow ID')
+            self.log.debug('XWindow ID')
             #self.videoslot.set_sink(message.src)
             message.src.set_window_handle(self.xid)
         else:
             return super(SimpleInterface, self).on_message(bus, message)
 
 def main():
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG,
-                        format='%(name)s (%(levelname)s): %(message)s')
     br = BarcodeReader()
     Gst.init(sys.argv)
 
