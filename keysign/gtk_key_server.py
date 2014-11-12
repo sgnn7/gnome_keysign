@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#
 #    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
 #    Copyright 2014 Andrei Macavei <andrei.macavei89@gmail.com>
 #    Copyright 2014 Srdjan Grubor <sgnn7@sgnn7.org>

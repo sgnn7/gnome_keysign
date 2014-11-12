@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 #    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
-#                   Srdjan Grubor <sgnn7@sgnn7.org>
+#    Copyright 2014 Srdjan Grubor <sgnn7@sgnn7.org>
 #
 #    This file is part of GNOME Keysign.
 #
