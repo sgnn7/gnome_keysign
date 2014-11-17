@@ -29,7 +29,7 @@ from network.avahi_publisher import AvahiPublisher
 from gi.repository import Gtk, GLib, Gio
 from sections import KeySignSection, GetKeySection
 
-import key_server
+from key_server import ServeKeyThread
 
 class MainWindow(Gtk.Application):
     def __init__(self):
@@ -111,11 +111,11 @@ class MainWindow(Gtk.Application):
         #self.keyserver = Thread(name='keyserver',
         #                        target=Keyserver.serve_key, args=('Foobar',))
         #self.keyserver.daemon = True
-        self.log.debug('About to call %r', Keyserver.ServeKeyThread)
-        self.keyserver = Keyserver.ServeKeyThread(str(keydata))
+        self.log.debug('About to call %r', ServeKeyThread)
+        self.keyserver = ServeKeyThread(str(keydata))
         self.log.info('Starting thread %r', self.keyserver)
         self.keyserver.start()
-        self.log.info('Finsihed serving')
+        self.log.info('Finished serving')
         return False
 
     def stop_server(self):

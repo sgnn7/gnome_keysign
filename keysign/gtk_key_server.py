@@ -23,7 +23,6 @@
 with the Gtk mainloop
 '''
 
-
 import sys
 
 from threading import Thread
