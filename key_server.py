@@ -20,10 +20,10 @@
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import keysign.key_server
+from  keysign.key_server import KeyServer
 
 if __name__ == '__main__':
-    key_filename = "Example data"
+    key_filename = None
     if len(sys.argv) >= 2:
         key_filename = sys.argv[1]
 

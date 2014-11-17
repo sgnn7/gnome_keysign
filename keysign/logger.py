@@ -24,7 +24,6 @@ class Logger(object):
     def __init__(self):
         self.logger = logging.getLogger()
 
-
         # Monkeypatching monkeysign to get more debug output
         original_build_command = monkeysign.gpg.Context.build_command
         def patched_build_command(*args, **kwargs):
@@ -41,6 +40,9 @@ class Logger(object):
 
     def info(self, *args):
         self.logger.info(args)
+
+    def warn(self, *args):
+        self.logger.warn(args)
 
 # Singleton logger instance
 def get_instance():

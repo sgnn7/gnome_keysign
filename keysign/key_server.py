@@ -19,17 +19,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import socket
 import dbus
 import time
-
+import logger
 import BaseHTTPServer
 
 from threading import Thread
 from network.avahi_publisher import AvahiPublisher
 from SocketServer import ThreadingMixIn
-
-import logger
 
 class KeyRequestHandlerBase(BaseHTTPServer.BaseHTTPRequestHandler):
     '''This is the "base class" which needs to be given access
@@ -37,7 +36,7 @@ class KeyRequestHandlerBase(BaseHTTPServer.BaseHTTPRequestHandler):
     but create a use one inheriting from this class. The subclass
     must also define a keydata field.
     '''
-    server_version = 'Geysign/' + 'FIXME-Version'
+    server_version = 'gnome-keysign/' + 'FIXME-version'
 
     ctype = 'application/openpgpkey' # FIXME: What the mimetype of an OpenPGP key?
 
@@ -71,15 +70,15 @@ class ThreadedKeyserver(ThreadingMixIn, BaseHTTPServer.HTTPServer):
             self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
             BaseHTTPServer.HTTPServer.server_bind(self)
 
-
-
 class ServeKeyThread(Thread):
     '''Serves requests and manages the server in separates threads.
     You can create an object and call start() to let it run.
     If you want to stop serving, call shutdown().
     '''
 
-    def __init__(self, data, port=9001, *args, **kwargs):
+    DEFAULT_PORT = 9001
+
+    def __init__(self, data, port = DEFAULT_PORT, *args, **kwargs):
         '''Initializes the server to serve the data'''
         self.keydata = data
         self.port = port
@@ -90,8 +89,7 @@ class ServeKeyThread(Thread):
         self.daemon = True
         self.httpd = None
 
-
-    def start(self, data=None, port=None, *args, **kwargs):
+    def start(self, *args, **kwargs):
         '''This is run in the same thread as the caller.
         This calls run() in a separate thread.
         In order to resolve DBus issues, most things
@@ -101,19 +99,20 @@ class ServeKeyThread(Thread):
         in order for this work.
         '''
 
-        port = port or self.port or 9001
-
         tries = 10
 
-        kd = data if data else self.keydata
+        kd = self.keydata
+
+        # XXX: What? We shouldn't define classes within a class
         class KeyRequestHandler(KeyRequestHandlerBase):
             '''You will need to create this during runtime'''
             keydata = kd
+
         HandlerClass = KeyRequestHandler
 
-        for port_i in (port + p for p in range(tries)):
+        for port_i in (self.port + offset for offset in range(tries)):
             try:
-                log.info('Trying port %d', port_i)
+                self.log.info('Trying port %d', port_i)
                 server_address = ('', port_i)
                 self.httpd = ThreadedKeyserver(server_address, HandlerClass, **kwargs)
 
@@ -126,9 +125,9 @@ class ServeKeyThread(Thread):
                     service_name = 'HTTP Keyserver',
                     service_txt = 'FIXME fingeprint', #FIXME Fingerprint
                     # self.keydata is too big for Avahi; it chrashes
-                    service_type = '_geysign._tcp',
+                    service_type = '_gnome-keysign._tcp',
                 )
-                log.info('Trying to add Avahi Service')
+                self.log.info('Trying to add Avahi Service')
                 ap.add_service()
 
             except socket.error, value:
@@ -142,9 +141,7 @@ class ServeKeyThread(Thread):
             finally:
                 pass
 
-
         super(ServeKeyThread, self).start(*args, **kwargs)
-
 
     def serve_key(self):
         '''An HTTPd is started and being put to serve_forever.
@@ -154,61 +151,65 @@ class ServeKeyThread(Thread):
 
         #sa = self.httpd.socket.getsockname()
         try:
-            log.info('Serving now on %s, this is probably blocking...',
+            self.log.info('Serving now on %s, this is probably blocking...',
                      self.httpd.socket.getsockname())
             self.httpd.serve_forever()
         finally:
-            log.info('finished serving')
+            self.log.info('finished serving')
             #httpd.dispose()
-
-
 
     def run(self):
         '''This is being run by Thread in a separate thread
         after you call start()'''
         self.serve_key()
 
-
     def shutdown(self):
         '''Sends shutdown to the underlying httpd'''
-        log.info("Removing Avahi Service")
+        self.log.info("Removing Avahi Service")
         self.avahi_publisher.remove_service()
-        log.info("Shutting down httpd %r", self.httpd)
+
+        self.log.info("Shutting down httpd %r", self.httpd)
         self.httpd.shutdown()
 
+class KeyServer(object):
+    def __init__(self, key_filename, timeout):
+        self.log = logger.get_instance()
 
-if __name__ == '__main__':
-    log = logger.get_instance()
+        self.key_filename = key_filename
+        self.timeout = timeout
 
-    dbus.mainloop.glib.DBusGMainLoop (set_as_default=True)
+        self.keydata = 'Example data'
 
-    def stop_thread(t, seconds=5):
-        log.info('Sleeping %d seconds, then stopping', seconds)
+        if self.key_filename:
+            with open(self.key_filename, 'r') as key_file:
+                self.keydata = key_file.read()
+
+    @staticmethod
+    def _timeout_thread_func(timeout, seconds = 5):
+        logger.get_instance().info('Sleeping %d seconds, then stopping', seconds)
         time.sleep(seconds)
-        t.shutdown()
+        timeout.shutdown()
 
-    import sys
-    if len(sys.argv) >= 2:
-        fname = sys.argv[1]
-        KEYDATA = open(fname, 'r').read()
-    else:
-        KEYDATA = 'Example data'
+    def run(self):
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default = True)
 
-    if len(sys.argv) >= 3:
-        timeout = int(sys.argv[2])
-    else:
-        timeout = 5
+        server_thread = ServeKeyThread(self.keydata)
 
-    t = ServeKeyThread(KEYDATA)
-    stop_t = Thread(target=stop_thread, args=(t,timeout))
-    stop_t.daemon = True
-    t.start()
-    stop_t.start()
-    while True:
-        log.info('joining stop %s', stop_t.isAlive())
-        stop_t.join(1)
-        log.info('joining t %s', t.isAlive())
-        t.join(1)
-        if not t.isAlive() or not stop_t.isAlive():
-            break
-    log.warn('Last line')
+        timeout_thread = Thread(target=KeyServer._timeout_thread_func, args=(server_thread, self.timeout))
+        timeout_thread.daemon = True
+
+        server_thread.start()
+        timeout_thread.start()
+
+        # XXX: This doesn't seem like a good way to keep tabs on the running thread
+        while True:
+            self.log.info('joining stop %s', timeout_thread.isAlive())
+            timeout_thread.join(1)
+
+            self.log.info('joining t %s', server_thread.isAlive())
+            server_thread.join(1)
+
+            if not (server_thread.isAlive() and timeout_thread.isAlive()):
+                break
+
+        self.log.warn('Exiting')

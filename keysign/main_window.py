@@ -64,7 +64,7 @@ class MainWindow(Gtk.Application):
 
         # Avahi services
         self.avahi_browser = None
-        self.avahi_service_type = '_geysign._tcp'
+        self.avahi_service_type = '_gnome-keysign._tcp'
         self.discovered_services = []
         GLib.idle_add(self.setup_avahi_browser)
 
