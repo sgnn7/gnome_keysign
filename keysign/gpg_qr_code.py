@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+#
 #    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
+#                   Srdjan Grubor <sgnn7@sgnn7.org>
 #
 #    This file is part of GNOME Keysign.
 #
@@ -19,32 +21,39 @@
 """This is a very simple QR Code generator which scans your GnuPG keyring
 for keys and selects the one matching your input
 """
+
+import  sys
+
 from gi.repository import Gtk
 from monkeysign.gpg import Keyring
 
 from QRCode import QRImage
 
-def main():
-    import sys
-    key = sys.argv[1]
-    keyring = Keyring()
-    keys = keyring.get_keys(key)
-    # Heh, we take the first key here. Maybe we should raise a warning
-    # or so, when there is more than one key.
-    fpr = keys.items()[0][0]
-    data = 'OPENPGP4FPR:' + fpr
-    
-    w = Gtk.Window()
-    w.connect("delete-event", Gtk.main_quit)
-    w.set_default_size(100,100)
-    v = Gtk.VBox()
-    label = Gtk.Label(data)
-    qr = QRImage(data)
-    v.add(label)
-    v.add(qr)
-    w.add(v)
-    w.show_all()
-    Gtk.main()
+class QRGenerator(object):
+    def run(self, key):
+        keys = Keyring().get_keys(key)
+
+        # Heh, we take the first key here. Maybe we should raise a warning
+        # or so, when there is more than one key.
+        fpr = keys.items()[0][0]
+        data = 'OPENPGP4FPR:' + fpr
+
+        window = Gtk.Window()
+        window.set_default_size(100,100)
+
+        window.connect("delete-event", Gtk.main_quit)
+
+        label = Gtk.Label(data)
+        qr_code = QRImage(data)
+
+        vbox = Gtk.VBox()
+        vbox.add(label)
+        vbox.add(qr_code)
+
+        window.add(vbox)
+        window.show_all()
+
+        Gtk.main()
 
 if __name__ == '__main__':
-    main()
+    QRGenerator().run(sys.argv[1])
