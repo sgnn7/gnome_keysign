@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
 #    Copyright 2014 Andrei Macavei <andrei.macavei89@gmail.com>
+#    Copyright 2015 Srdjan Grubor <sgnn7@sgnn7.org>
 #
 #    This file is part of GNOME Keysign.
 #
@@ -17,21 +18,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with GNOME Keysign.  If not, see <http://www.gnu.org/licenses/>.
 
-
 class KeyError(Exception):
     pass
 
 class Key:
-    @classmethod
-    def is_valid_fingerprint(cls, fingerprint):
-        if len(fingerprint) != 40:
-            return False
-        return True
-
     def __init__(self, fingerprint):
-        if not self.is_valid_fingerprint(fingerprint):
+        # Key validity check
+        if len(fingerprint) != 40:
             raise KeyError("Fingerprint {} does not "
                            "appear to be valid".format(fingerprint))
 
         self.fingerprint = fingerprint
-
