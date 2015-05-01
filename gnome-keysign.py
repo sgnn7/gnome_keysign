@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-import sys
-import signal
 
+from sys import stderr
+from signal import SIGINT
 from gi.repository import GLib
 
 from keysign.MainWindow import MainWindow
@@ -12,7 +12,7 @@ class GnomeKeysign(object):
     LOGGING_FORMAT = '%(name)s (%(levelname)s): %(message)s'
 
     def __init__(self, logging_level = logging.DEBUG):
-        logging.basicConfig(stream = sys.stderr,
+        logging.basicConfig(stream = stderr,
                             level = logging_level,
                             format = self.LOGGING_FORMAT)
     def run(self):
@@ -20,7 +20,7 @@ class GnomeKeysign(object):
 
         try:
             GLib.unix_signal_add_full(GLib.PRIORITY_HIGH,
-                                      signal.SIGINT,
+                                      SIGINT,
                                       lambda *args : application.quit(),
                                       None)
         except AttributeError:
