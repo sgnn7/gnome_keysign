@@ -8,22 +8,25 @@ from gi.repository import GLib
 
 from keysign.MainWindow import MainWindow
 
-logging.basicConfig(stream=sys.stderr,
-                    level=logging.DEBUG,
-                    format='%(name)s (%(levelname)s): %(message)s')
+class GnomeKeysign(object):
+    LOGGING_FORMAT = '%(name)s (%(levelname)s): %(message)s'
 
-def main():
-    app = MainWindow()
+    def __init__(self, logging_level = logging.DEBUG):
+        logging.basicConfig(stream = sys.stderr,
+                            level = logging_level,
+                            format = self.LOGGING_FORMAT)
+    def run(self):
+        application = MainWindow()
 
-    try:
-        GLib.unix_signal_add_full(GLib.PRIORITY_HIGH,
-                                  signal.SIGINT,
-                                  lambda *args : app.quit(),
-                                  None)
-    except AttributeError:
-        pass
+        try:
+            GLib.unix_signal_add_full(GLib.PRIORITY_HIGH,
+                                      signal.SIGINT,
+                                      lambda *args : application.quit(),
+                                      None)
+        except AttributeError:
+            pass
 
-    exit_status = app.run(None)
-    return exit_status
+        return application.run(None)
 
-sys.exit(main())
+if __name__ == '__main__':
+    exit(GnomeKeysign().run())
