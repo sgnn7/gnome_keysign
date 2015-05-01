@@ -2,6 +2,7 @@
 #    Copyright 2014 Andrei Macavei <andrei.macavei89@gmail.com>
 #    Copyright 2014 Tobias Mueller <muelli@cryptobitch.de>
 #    Copyright 2015 Jody Hansen <jobediah.hansen@gmail.com>
+#    Copyright 2015 Srdjan Grubor <sgnn7@sgnn7.org>
 #
 #    This file is part of GNOME Keysign.
 #
@@ -22,30 +23,25 @@ import logging
 import signal
 import sys
 
+import Keyserver
+
+from gi.repository import Gtk, GLib, Gio
 from network.AvahiBrowser import AvahiBrowser
 from network.AvahiPublisher import AvahiPublisher
 
-from gi.repository import Gtk, GLib, Gio
 from Sections import KeySignSection, GetKeySection
 
-import Keyserver
-
 class MainWindow(Gtk.Application):
-
     def __init__(self):
-        Gtk.Application.__init__(
-            self, application_id=None) ### org.gnome.Geysign ###
+        Gtk.Application.__init__(self,
+                                 application_id = None) ### org.gnome.Geysign ###
         self.connect("activate", self.on_activate)
         self.connect("startup", self.on_startup)
 
         self.log = logging.getLogger()
-        self.log = logging
-
-
 
     def on_quit(self, app, param=None):
         self.quit()
-
 
     def on_startup(self, app):
         self.log.info("Startup")
@@ -76,8 +72,9 @@ class MainWindow(Gtk.Application):
         self.port = 9001
 
         ## App menus
-        appmenu = Gio.Menu.new()
         section = Gio.Menu.new()
+
+        appmenu = Gio.Menu.new()
         appmenu.append_section(None, section)
 
         some_action = Gio.SimpleAction.new("scan-image", None)
@@ -91,10 +88,8 @@ class MainWindow(Gtk.Application):
 
         self.set_app_menu(appmenu)
 
-
     def on_scan_image(self, *args, **kwargs):
         print("scanimage")
-
 
     def on_activate(self, app):
         self.log.info("Activate!")
@@ -105,7 +100,6 @@ class MainWindow(Gtk.Application):
         # we raise the existing window.
         # self.window.present()
 
-
     def setup_avahi_browser(self):
         # FIXME: place a proper service type
         self.avahi_browser = AvahiBrowser(service=self.avahi_service_type)
@@ -113,7 +107,6 @@ class MainWindow(Gtk.Application):
         self.avahi_browser.connect('remove_service', self.on_remove_service)
 
         return False
-
 
     def setup_server(self, keydata, fingerprint):
         """
@@ -128,10 +121,8 @@ class MainWindow(Gtk.Application):
         self.log.info('Finsihed serving')
         return False
 
-
     def stop_server(self):
         self.keyserver.shutdown()
-
 
     def on_new_service(self, browser, name, address, port, txt_dict):
         published_fpr = txt_dict.get('fingerprint', None)
@@ -144,26 +135,22 @@ class MainWindow(Gtk.Application):
             self.log.warn("Client was rejected: %s %s %i",
                         name, address, port)
 
-
     def on_remove_service(self, browser, service_type, name):
         '''Receives on_remove signal from avahibrowser.py to remove service from list and
         transfers data to remove_discovered_service'''
         self.log.info("Received a remove signal, let's check; %s:%s", service_type, name)
         GLib.idle_add(self.remove_discovered_service, name)
 
-
     def verify_service(self, name, address, port):
         '''A tiny function to return whether the service
         is indeed something we are interested in'''
         return True
-
 
     def add_discovered_service(self, name, address, port, published_fpr):
         self.discovered_services += ((name, address, port, published_fpr), )
         #List needs to be modified when server services are removed.
         self.log.info("Clients currently in list '%s'", self.discovered_services)
         return False
-
 
     def remove_discovered_service(self, name):
         '''Removes server-side clients from discovered_services list
@@ -172,7 +159,6 @@ class MainWindow(Gtk.Application):
             if client[0] == name:
                 self.discovered_services.remove(client)
         self.log.info("Clients currently in list '%s'", self.discovered_services)
-
 
 def main():
     app = MainWindow()
